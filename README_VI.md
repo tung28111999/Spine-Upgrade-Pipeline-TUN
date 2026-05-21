@@ -82,6 +82,14 @@ Khuyến nghị dùng `Spine.com` cho chế độ dòng lệnh. Với giao diệ
 
 ## Chạy Giao Diện Desktop
 
+Cách nhanh nhất trên Windows là bấm đúp:
+
+```text
+run_tool.bat
+```
+
+Hoặc chạy thủ công:
+
 ```powershell
 python main.py
 ```

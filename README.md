@@ -79,6 +79,14 @@ Edit `config.json` and set your local Spine path:
 
 ## Run Desktop UI
 
+On Windows, the quickest way is to double-click:
+
+```text
+run_tool.bat
+```
+
+Or run manually:
+
 ```powershell
 python main.py
 ```
