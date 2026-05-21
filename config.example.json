@@ -1,0 +1,16 @@
+{
+  "spine_versions": {
+    "3.7": "C:/Path/To/Spine/Spine.com",
+    "3.8": "C:/Path/To/Spine/Spine.com",
+    "4.0": "C:/Path/To/Spine/Spine.com",
+    "4.1": "C:/Path/To/Spine/Spine.com",
+    "4.2": "C:/Path/To/Spine/Spine.com"
+  },
+  "default_old_version": "auto",
+  "allowed_target_versions": ["3.7", "3.8", "4.0", "4.1", "4.2"],
+  "default_export_json": false,
+  "default_export_binary": true,
+  "default_pack": true,
+  "default_archive_format": "zip",
+  "cleanup_temp": true
+}
