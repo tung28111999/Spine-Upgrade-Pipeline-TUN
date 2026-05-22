@@ -63,12 +63,26 @@ def _select_skeleton(job: AssetJob) -> Path:
         raise RuntimeError("export folder is missing")
 
     preferred_suffix = ".json" if _original_was_json(job) else ".skel"
-    skeleton = first_runtime_file(job.export_dir, preferred_suffix)
+    candidates = sorted(
+        path
+        for path in job.export_dir.rglob("*")
+        if path.is_file() and path.suffix.lower() == preferred_suffix
+    )
+    skeleton = _matching_runtime_file(candidates, job.name)
+    if skeleton is None and len(candidates) == 1:
+        skeleton = candidates[0]
     if skeleton is None:
-        skeleton = first_runtime_file(job.export_dir, ".json" if preferred_suffix == ".skel" else ".skel")
-    if skeleton is None:
-        raise RuntimeError("no exported skeleton file was found")
+        expected = ".json" if preferred_suffix == ".json" else ".skel for .skel.bytes output"
+        raise RuntimeError(f"expected exported skeleton {expected}, but it was not found")
     return skeleton
+
+
+def _matching_runtime_file(candidates: list[Path], job_name: str) -> Path | None:
+    normalized_job_name = job_name.lower()
+    for path in candidates:
+        if path.stem.lower() == normalized_job_name:
+            return path
+    return None
 
 
 def _unity_skeleton_target(job: AssetJob, skeleton_source: Path, target_dir: Path) -> Path:

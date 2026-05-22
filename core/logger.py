@@ -54,8 +54,8 @@ class PipelineLogger:
     def write_summary(self, jobs: Iterable[AssetJob]) -> PipelineSummary:
         rows = list(jobs)
         summary = PipelineSummary(total_jobs=len(rows))
-        summary.passed_jobs = sum(1 for job in rows if job.status == "PASS")
-        summary.failed_jobs = summary.total_jobs - summary.passed_jobs
+        summary.passed_jobs = sum(1 for job in rows if job.status in {"PASS", "SKIPPED"})
+        summary.failed_jobs = sum(1 for job in rows if job.status == "FAIL")
 
         with (self.output_dir / "summary.csv").open("w", newline="", encoding="utf-8-sig") as handle:
             writer = csv.DictWriter(

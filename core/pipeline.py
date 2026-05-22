@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 import shutil
@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+from core.atlas_unpacker import unpack_atlas_fallback
 from core.archive_extractor import ARCHIVE_SUFFIXES, create_archive_from_folder, extract_archive_to_sibling_folder, extract_zip_inputs
 from core.image_path import copy_images_for_project, patch_json_images_path, write_square_pack_settings
 from core.logger import PipelineLogger, PipelineSummary
@@ -116,7 +117,9 @@ class SpineUpgradePipeline:
                 unpack_result = old_spine.unpack_atlas(job.normalized_atlas_path, images_root)
                 self.logger.command_result(unpack_result.label, unpack_result.command, unpack_result.returncode, unpack_result.stdout, unpack_result.stderr)
                 if not unpack_result.ok:
-                    raise RuntimeError("atlas unpack failed")
+                    self.logger.info("Spine atlas unpack failed. Trying internal atlas unpack fallback.")
+                    fallback_images = unpack_atlas_fallback(job.normalized_atlas_path, images_root)
+                    self.logger.info(f"PASS: Internal atlas unpack fallback wrote {len(fallback_images)} image(s).")
 
                 job.old_project_path = old_projects_root / f"{job.name}_imported_old.spine"
                 import_result = old_spine.import_skeleton(job.normalized_skeleton_path, job.old_project_path)

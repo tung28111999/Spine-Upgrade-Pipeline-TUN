@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import os
@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
+from core.atlas_unpacker import unpack_atlas_fallback
 from core.archive_extractor import ARCHIVE_SUFFIXES, create_archive_from_folder, extract_archive_to_folder
 from core.image_path import copy_images_for_project, patch_json_images_path, write_square_pack_settings
 from core.logger import PipelineLogger
@@ -103,7 +104,7 @@ class HeadlessPipeline:
         images_root = self.config.output_dir / "images"
         old_projects_root = self.config.output_dir / "spine_old"
         new_projects_root = self.config.output_dir / "spine_new"
-        raw_export_root = self.config.output_dir / ".work" / "export_raw"
+        raw_export_root = self.config.output_dir / ".work" / "export_raw" / job.folder_name
         metadata_root = self.config.output_dir / ".work" / "metadata"
         packed_atlas_root = self.config.output_dir / ".work" / "packed_atlas"
         export_root = self.config.output_dir / "export"
@@ -127,7 +128,7 @@ class HeadlessPipeline:
         self.logger.info(f"Old Spine line: {old_version}.xx")
         self.logger.info(f"New Spine line: {self.config.new_version}.xx")
 
-        self._run_cli(old_spine.unpack_atlas(job.normalized_atlas_path, images_root / job.name), "atlas unpack failed")
+        self._unpack_atlas(old_spine, job.normalized_atlas_path, images_root / job.name)
 
         job.old_project_path = old_projects_root / f"{job.name}_imported_old.spine"
         self._run_cli(old_spine.import_skeleton(job.normalized_skeleton_path, job.old_project_path), "old Spine import failed")
@@ -212,6 +213,15 @@ class HeadlessPipeline:
         self.logger.command_result(result.label, result.command, result.returncode, result.stdout, result.stderr)
         if not result.ok:
             raise SpineCliFailed(failure_message)
+
+    def _unpack_atlas(self, spine: SpineCli, atlas_path: Path, images_dir: Path) -> None:
+        result = spine.unpack_atlas(atlas_path, images_dir)
+        self.logger.command_result(result.label, result.command, result.returncode, result.stdout, result.stderr)
+        if result.ok:
+            return
+        self.logger.info("Spine atlas unpack failed. Trying internal atlas unpack fallback.")
+        fallback_images = unpack_atlas_fallback(atlas_path, images_dir)
+        self.logger.info(f"PASS: Internal atlas unpack fallback wrote {len(fallback_images)} image(s).")
 
     def _export_formats(self, skeleton_path: Path) -> list[str]:
         formats: list[str] = []

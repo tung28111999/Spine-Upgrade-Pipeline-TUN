@@ -21,6 +21,10 @@ class AssetScanner:
             self._scan_root(root, skeletons, atlases, images_by_dir)
 
         keys = sorted(set(skeletons) | set(atlases), key=lambda item: (str(item[0]).lower(), item[1].lower()))
+        asset_count_by_parent: dict[Path, int] = defaultdict(int)
+        for parent, _asset_name in keys:
+            asset_count_by_parent[parent] += 1
+
         jobs: list[AssetJob] = []
         used_output_names: set[str] = set()
         for parent, asset_name in keys:
@@ -29,7 +33,13 @@ class AssetScanner:
             atlas = atlases.get(key)
             image_dir = atlas.parent if atlas else (skeleton.parent if skeleton else input_dir)
             images = self._atlas_images(atlas, images_by_dir.get(image_dir, [])) if atlas else images_by_dir.get(image_dir, [])
-            output_name = self.output_name(input_dir, parent, asset_name, used_output_names)
+            output_name = self.output_name(
+                input_dir,
+                parent,
+                asset_name,
+                used_output_names,
+                use_asset_name=asset_count_by_parent[parent] > 1,
+            )
             jobs.append(
                 AssetJob(
                     name=asset_name,
@@ -76,8 +86,14 @@ class AssetScanner:
         return path.stem
 
     @staticmethod
-    def output_name(input_dir: Path, asset_dir: Path, asset_name: str, used: set[str]) -> str:
-        base = asset_dir.name or asset_name
+    def output_name(
+        input_dir: Path,
+        asset_dir: Path,
+        asset_name: str,
+        used: set[str],
+        use_asset_name: bool = False,
+    ) -> str:
+        base = asset_name if use_asset_name else (asset_dir.name or asset_name)
 
         candidate = base
         index = 2

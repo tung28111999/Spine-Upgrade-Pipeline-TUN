@@ -28,6 +28,7 @@ It is useful when the original `.spine` project is missing, but the exported run
 - Open Spine Launcher first and make sure the source/target versions can run before using this tool.
 - Imported runtime data may not perfectly reconstruct the original `.spine` project if editor/nonessential data is missing.
 - This project is unofficial and is not affiliated with Esoteric Software.
+- Exported atlas textures use premultiplied alpha. In Unity Linear Color Space, use the matching Spine PMA texture/material workflow, otherwise colors may look washed out.
 
 ## Disclaimer
 
